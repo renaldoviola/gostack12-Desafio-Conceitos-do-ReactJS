@@ -1,26 +1,58 @@
-import React from "react";
+import React, {useState, useEffect} from "react";
 
 import "./styles.css";
+import api from "./services/api";
+
 
 function App() {
+
+  const [repositories, setRepository] = useState([]);
+
+  useEffect(() => {
+    async function loadRepositories() {
+      const response = await api.get('repositories');
+      setRepository(response.data);
+    }
+
+    loadRepositories();
+  }, []);
+
+
   async function handleAddRepository() {
-    // TODO
+    
+    const response = await api.post('repositories', {
+      title: `Meu novo Título${Date.now()}`,
+      url: 'http://www.rocketlab.com.br',
+      techs: [
+        "ReactJs", "Node", "React-Native"
+      ]
+    });
+
+    setRepository([...repositories, response.data])
   }
 
   async function handleRemoveRepository(id) {
-    // TODO
+    await api.delete(`/repositories/${id}`);
+    const filterRepository = repositories.filter((repository) => repository.id !== id);
+
+    setRepository(filterRepository);
+
   }
 
   return (
     <div>
       <ul data-testid="repository-list">
-        <li>
-          Repositório 1
-
-          <button onClick={() => handleRemoveRepository(1)}>
-            Remover
-          </button>
-        </li>
+          {repositories.map(repository => {
+            return (
+              <li key={repository.id}>{repository.title}
+            
+              <button onClick={() => handleRemoveRepository(repository.id)} >
+                Remover
+              </button>
+              </li>
+            )}
+          )}
+          
       </ul>
 
       <button onClick={handleAddRepository}>Adicionar</button>
